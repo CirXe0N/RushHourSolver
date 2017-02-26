@@ -3,11 +3,11 @@ from enums.orientation import Orientation
 
 class Vehicle(object):
 
-    def __init__(self, name, is_main_vehicle=False):
+    def __init__(self, name, main_vehicle=False):
         self.name = name
         self.start_location = {}
         self.end_location = {}
-        self.is_main_vehicle = is_main_vehicle
+        self.main_vehicle = main_vehicle
         self.occupied_locations = []
 
     def set_start_location(self, x, y):
@@ -49,7 +49,7 @@ class Vehicle(object):
         return self.name
 
     def is_main_vehicle(self):
-        return self.is_main_vehicle
+        return self.main_vehicle
 
     def get_orientation(self):
         if self.start_location['x'] == self.end_location['x']:
@@ -75,3 +75,6 @@ class Vehicle(object):
         if self.get_orientation() == Orientation.VERTICAL:
             self.start_location['y'] -= 1
             self.end_location['y'] -= 1
+
+    def __repr__(self):
+        return '%s - %s - %s' % (self.name, self.start_location, self.end_location)

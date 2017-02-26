@@ -1,101 +1,142 @@
 from copy import deepcopy
+from queue import Queue
 from enums.direction import Direction
 from enums.orientation import Orientation
 
 
 class BoardSolver(object):
     def __init__(self, game_board):
-        self.solution = None
         self.game_board = game_board
+        self.solution = None
 
     def get_solution(self):
-        steps = []
-        visited = []
-        queue = [self.game_board.get_vehicles()]
+        grid = self.game_board.get_grid()
+        visited = set()
+        queue = Queue()
+        queue.put([[], grid])
 
-        while len(queue) != 0:
-            vehicles = queue.pop(0)
+        while not queue.empty():
+            moves, grid = queue.get()
 
-            if self.is_solved(vehicles):
-                return steps
+            self.print_grid(grid)
 
-            snapshots = self.create_snapshots(vehicles)
+            if self.is_solved(grid):
+                return moves
 
-            for snapshot in snapshots:
-                if hash(str(snapshot)) not in visited:
-                    queue.append(snapshot)
-                    visited.append(hash(str(snapshot)))
+            for new_moves, new_grid in self.get_states(grid):
+                if hash(str(new_grid)) not in visited:
+                    queue.put([moves + new_moves, new_grid])
+                    visited.add(hash(str(new_grid)))
+
         return None
 
-    def create_snapshots(self, vehicles):
-        snapshots = []
+    def print_grid(self, grid):
+        print('----------------------')
+        for row in range(self.game_board.get_height()):
+            for column in range(self.game_board.get_width()):
+                vehicle = grid[column][row]
+                if vehicle:
+                    print(vehicle.get_name(), end=' ')
+                else:
+                    print('.', end=' ')
 
-        for vehicle in vehicles:
-            for direction in Direction:
-                if self.is_movable(vehicle, direction, vehicles):
-                    new_vehicles = deepcopy(vehicles)
-                    new_vehicle = list(filter(lambda x: x.name == vehicle.name, new_vehicles))[0]
-                    if direction == Direction.BACKWARD:
-                        new_vehicle.move_backward()
+                if column == self.game_board.get_width() - 1:
+                    print('')
+        print('----------------------')
 
-                    if direction == Direction.FORWARD:
-                        new_vehicle.move_forward()
+    def get_states(self, grid):
+        states = []
+        for row in range(self.game_board.get_height()):
+            for column in range(self.game_board.get_width()):
+                vehicle = grid[column][row]
+                if vehicle:
+                    for direction in Direction:
+                        if self.is_movable(vehicle, direction, grid):
+                            new_grid = deepcopy(grid)
+                            new_vehicle = new_grid[column][row]
 
-                    print(new_vehicle.name, new_vehicle.get_start_location(), new_vehicle.get_end_location(), direction)
+                            if direction == Direction.BACKWARD:
+                                new_vehicle.move_backward()
 
-                    snapshots.append(new_vehicles)
-        return snapshots
+                            if direction == Direction.FORWARD:
+                                new_vehicle.move_forward()
 
-    def is_movable(self, vehicle, direction, vehicles):
-        start_location = vehicle.get_start_location()
-        end_location = vehicle.get_end_location()
+                            old_locations = vehicle.get_occupied_locations()
+                            new_locations = new_vehicle.get_occupied_locations()
+                            new_grid = self.update_vehicle(new_grid, new_vehicle, old_locations, new_locations)
+                            states.append([[[vehicle, direction]], new_grid])
+        return states
 
-        for board_vehicle in vehicles:
-            occupied_locations = board_vehicle.get_occupied_locations()
+    def update_vehicle(self, grid, vehicle, old_locations, new_locations):
+        for location in old_locations:
+            x = location['x']
+            y = location['y']
+            grid[x][y] = 0
 
-            if vehicle.get_orientation() == Orientation.HORIZONTAL and direction == Direction.FORWARD:
-                next_location = {
-                    'x': end_location['x'] + 1,
-                    'y': end_location['y']
-                }
+        for location in new_locations:
+            x = location['x']
+            y = location['y']
+            grid[x][y] = vehicle
 
-                if next_location['x'] >= self.game_board.get_width() or next_location in occupied_locations:
+        return grid
+
+    def is_movable(self, vehicle, direction, grid):
+        if vehicle.get_orientation() == Orientation.HORIZONTAL and direction == Direction.FORWARD:
+            location = vehicle.get_end_location()
+            x = location['x'] + 1
+            y = location['y']
+
+            if x < self.game_board.get_width():
+                board_vehicle = grid[x][y]
+                if board_vehicle:
                     return False
+            else:
+                return False
 
-            if vehicle.get_orientation() == Orientation.VERTICAL and direction == Direction.FORWARD:
-                next_location = {
-                    'x': end_location['x'],
-                    'y': end_location['y'] + 1
-                }
+        if vehicle.get_orientation() == Orientation.HORIZONTAL and direction == Direction.BACKWARD:
+            location = vehicle.get_start_location()
+            x = location['x'] - 1
+            y = location['y']
 
-                if next_location['y'] >= self.game_board.get_height() or next_location in occupied_locations:
+            if x > -1:
+                board_vehicle = grid[x][y]
+                if board_vehicle:
                     return False
+            else:
+                return False
 
-            if vehicle.get_orientation() == Orientation.HORIZONTAL and direction == Direction.BACKWARD:
-                next_location = {
-                    'x': start_location['x'] - 1,
-                    'y': start_location['y']
-                }
+        if vehicle.get_orientation() == Orientation.VERTICAL and direction == Direction.FORWARD:
+            location = vehicle.get_end_location()
+            x = location['x']
+            y = location['y'] + 1
 
-                if next_location['x'] < 0 or next_location in occupied_locations:
+            if y < self.game_board.get_height():
+                board_vehicle = grid[x][y]
+                if board_vehicle:
                     return False
+            else:
+                return False
 
-            if vehicle.get_orientation() == Orientation.VERTICAL and direction == Direction.BACKWARD:
-                next_location = {
-                    'x': start_location['x'],
-                    'y': start_location['y'] - 1
-                }
+        if vehicle.get_orientation() == Orientation.VERTICAL and direction == Direction.BACKWARD:
+            location = vehicle.get_start_location()
+            x = location['x']
+            y = location['y'] - 1
 
-                if next_location['y'] < 0 or next_location in occupied_locations:
+            if y > -1:
+                board_vehicle = grid[x][y]
+                if board_vehicle:
                     return False
+            else:
+                return False
+
         return True
 
-    def is_solved(self, vehicles):
-        main_vehicle = None
-        for vehicle in vehicles:
-            if vehicle.is_main_vehicle():
-                main_vehicle = vehicle
+    def is_solved(self, grid):
+        for row in range(self.game_board.get_height()):
+            for column in range(self.game_board.get_width()):
+                vehicle = grid[column][row]
 
-        if main_vehicle and main_vehicle.get_end_location()['x'] == self.game_board.get_width() - 1:
-            return True
+                if vehicle and vehicle.is_main_vehicle() and column == self.game_board.get_width() - 1:
+                    print(vehicle)
+                    return True
         return False

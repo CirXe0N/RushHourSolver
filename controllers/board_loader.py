@@ -22,34 +22,35 @@ class BoardLoader(object):
 
     def parse_to_objects(self, content):
         vehicles = {}
-        for content_index, line in enumerate(content):
-            for line_index, letter in enumerate(line):
+
+        for row_index, line in enumerate(content):
+            for column_index, letter in enumerate(line):
 
                 if letter != '.' and letter != 'r':
                     if letter not in vehicles:
                         vehicle = Vehicle(name=letter)
-                        vehicle.set_start_location(line_index, content_index)
+                        vehicle.set_start_location(column_index, row_index)
                         vehicles[letter] = vehicle
                     else:
                         vehicle = vehicles[letter]
-                        vehicle.set_end_location(line_index, content_index)
+                        vehicle.set_end_location(column_index, row_index)
 
                 if letter == 'r':
                     if letter not in vehicles:
                         vehicle = Vehicle(name=letter, main_vehicle=True)
-                        vehicle.set_start_location(line_index, content_index)
+                        vehicle.set_start_location(column_index, row_index)
                         vehicles[letter] = vehicle
                     else:
                         vehicle = vehicles[letter]
-                        vehicle.set_end_location(line_index, content_index)
+                        vehicle.set_end_location(column_index, row_index)
 
         board_width = len(content[0])
         board_height = len(content)
-        game_board = GameBoard(board_height, board_width)
+        self.game_board = GameBoard(board_height, board_width)
 
         for key, vehicle in sorted(vehicles.items()):
-            game_board.add_vehicle(vehicle)
-        self.game_board = game_board
+            locations = vehicle.get_occupied_locations()
+            self.game_board.add_vehicle(vehicle, locations)
 
     def get_game_board(self):
         return self.game_board
