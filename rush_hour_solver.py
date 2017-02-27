@@ -1,38 +1,45 @@
-import datetime
+import sys
+import time
 from controllers.board_loader import BoardLoader
 from controllers.board_solver import BoardSolver
-from enums.direction import Direction
-from enums.orientation import Orientation
+from views.console_view import ConsoleView
+
+
+class RushHourSolver(object):
+    def __init__(self):
+        self.console_view = ConsoleView()
+        self.run()
+
+    def run(self):
+        # Ask user which game board load
+        board_name = self.console_view.load_board_prompt()
+
+        if board_name:
+            # Load game board from file
+            loader = BoardLoader('./boards/%s.txt' % board_name)
+            game_board = loader.get_game_board()
+
+            # Display game board
+            self.console_view.display_loaded_grid(game_board.get_grid(), game_board.get_height(), game_board.get_width())
+
+            # Find the solution to the game board
+            start_time = time.perf_counter()
+            solver = BoardSolver(game_board, self.console_view)
+            solution = solver.get_solution()
+            end_time = time.perf_counter()
+
+            if solution:
+                self.console_view.display_statistics(len(solution), end_time - start_time)
+            else:
+                self.console_view.display_statistics(time_delta=end_time - start_time)
+
+            self.console_view.display_solution(solution)
+
+        # Exit system
+        self.console_view.display_exit_message()
+        sys.exit()
 
 
 if __name__ == "__main__":
-    # Start Timer
-    start_time = datetime.datetime.now()
-    loader = BoardLoader('./boards/1.txt')
-    game_board = loader.get_game_board()
-    solver = BoardSolver(game_board)
-    solution = solver.get_solution()
-
-    if solution:
-        for index, move in enumerate(solution):
-            vehicle = move[0]
-            direction = move[1]
-            direction_name = ''
-            if vehicle.get_orientation() == Orientation.HORIZONTAL and direction == Direction.FORWARD:
-                direction_name = 'Right'
-
-            if vehicle.get_orientation() == Orientation.HORIZONTAL and direction == Direction.BACKWARD:
-                direction_name = 'Left'
-
-            if vehicle.get_orientation() == Orientation.VERTICAL and direction == Direction.FORWARD:
-                direction_name = 'Down'
-
-            if vehicle.get_orientation() == Orientation.VERTICAL and direction == Direction.BACKWARD:
-                direction_name = 'Up'
-
-            print('%02d: %s -> %s' % (index + 1, vehicle.get_name(), direction_name))
-    else:
-        print('This puzzle is even unsolvable for me :(')
-    print(start_time, datetime.datetime.now())
-
+    RushHourSolver()
 

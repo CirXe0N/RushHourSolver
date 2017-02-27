@@ -14,18 +14,6 @@ class GameBoard(object):
     def get_grid(self):
         return self.grid
 
-    def print_grid(self):
-        for row in range(self.height):
-            for column in range(self.width):
-                vehicle = self.grid[column][row]
-                if vehicle:
-                    print(vehicle.get_name(), end=' ')
-                else:
-                    print('.', end=' ')
-
-                if column == self.width - 1:
-                    print('')
-
     def add_vehicle(self, vehicle, locations):
         for location in locations:
             x = location['x']
