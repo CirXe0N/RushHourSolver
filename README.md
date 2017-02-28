@@ -11,9 +11,9 @@ However, the cars and trucks (set up before play according to a puzzle card) obs
 
     1. Add a game board file (.txt) to the directory **boards**.
     2. Run the program:
-        ```
+    
         $ python3 rush_hour_solver.py
-        ```
+      
     3. Follow the instructions on the screen and let the magic happen.
 
 
