@@ -23,6 +23,7 @@ However, the cars and trucks (set up before play according to a puzzle card) obs
 *  **rr** is the red car that needs to be freed.
 *  The file needs to be saved as **text** file with the extension **.txt**
 
+**File Content**: 
 ```
 ....AA
 ..BBCC
