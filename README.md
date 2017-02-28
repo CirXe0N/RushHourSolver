@@ -1,7 +1,6 @@
 ## Rush Hour Solver
 Rush Hour is a tiny sliding board game played on a board of 6x6 squares.
-The goal of the game is to get the red car out of a six-by-six grid full of automobiles by moving the other vehicles out of its way. 
-However, the cars and trucks (set up before play according to a puzzle card) obstruct the path which makes the puzzle harder.
+The goal of the game is to get the red car out of a six-by-six grid full of automobiles by moving the other vehicles out of its way. However, the cars and trucks obstruct the path and they can only go forward or backward, which makes the puzzle harder.
 
 **Note**: This application has been developed and tested on [Python 3.52](https://www.python.org/downloads/)
   
