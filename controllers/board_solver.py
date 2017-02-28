@@ -4,6 +4,55 @@ from enums.direction import Direction
 from enums.orientation import Orientation
 
 
+class BoardSolver(object):
+    def __init__(self, game_board, console_view):
+        self.game_board = game_board
+        self.console_view = console_view
+        self.solution = None
+
+    def get_solution(self):
+        """Find the solution of the game board"""
+        grid = self.game_board.get_grid()
+        visited = set()
+        queue = [[[], grid]]
+
+        while len(queue) > 0:
+            threads = []
+            moves = []
+            for item in range(len(queue)):
+                moves, grid = queue.pop(0)
+
+                self.console_view.display_grid(grid, self.game_board.get_height(), self.game_board.get_width())
+
+                if self.is_solved(grid):
+                    return moves
+
+                threads.append(SolverThread(grid, self.game_board.get_height(), self.game_board.get_width()))
+
+            for thread in threads:
+                thread.start()
+
+            for thread in threads:
+                thread.join()
+
+            for thread in threads:
+                for new_moves, new_grid in thread.states:
+                    if hash(str(new_grid)) not in visited:
+                        queue.append([moves + new_moves, new_grid])
+                        visited.add(hash(str(new_grid)))
+        return None
+
+    def is_solved(self, grid):
+        """Check if game board is solved."""
+        for row in range(self.game_board.get_height()):
+            for column in range(self.game_board.get_width()):
+                vehicle = grid[column][row]
+
+                if vehicle and vehicle.is_main_vehicle() and column == self.game_board.get_width() - 1:
+                    return True
+        return False
+
+
 class SolverThread(threading.Thread):
     def __init__(self, grid, width, height):
         self.grid = grid
@@ -13,6 +62,7 @@ class SolverThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        """Run the breadth first search algorithm to find the solution."""
         for row in range(self.height):
             for column in range(self.width):
                 vehicle = self.grid[column][row]
@@ -35,6 +85,7 @@ class SolverThread(threading.Thread):
         return self.states
 
     def is_movable(self, vehicle, direction, grid):
+        """Check if vehicle object is movable to the next empty space."""
         if vehicle.get_orientation() == Orientation.HORIZONTAL and direction == Direction.FORWARD:
             location = vehicle.get_end_location()
             x = location['x'] + 1
@@ -87,6 +138,7 @@ class SolverThread(threading.Thread):
 
     @staticmethod
     def update_vehicle(grid, vehicle, old_locations, new_locations):
+        """Update grid with the vehicles' new location."""
         for location in old_locations:
             x = location['x']
             y = location['y']
@@ -98,50 +150,3 @@ class SolverThread(threading.Thread):
             grid[x][y] = vehicle
 
         return grid
-
-
-class BoardSolver(object):
-    def __init__(self, game_board, console_view):
-        self.game_board = game_board
-        self.console_view = console_view
-        self.solution = None
-
-    def get_solution(self):
-        grid = self.game_board.get_grid()
-        visited = set()
-        queue = [[[], grid]]
-
-        while len(queue) > 0:
-            threads = []
-            moves = []
-            for item in range(len(queue)):
-                moves, grid = queue.pop(0)
-
-                self.console_view.display_grid(grid, self.game_board.get_height(), self.game_board.get_width())
-
-                if self.is_solved(grid):
-                    return moves
-
-                threads.append(SolverThread(grid, self.game_board.get_height(), self.game_board.get_width()))
-
-            for thread in threads:
-                thread.start()
-
-            for thread in threads:
-                thread.join()
-
-            for thread in threads:
-                for new_moves, new_grid in thread.states:
-                    if hash(str(new_grid)) not in visited:
-                        queue.append([moves + new_moves, new_grid])
-                        visited.add(hash(str(new_grid)))
-        return None
-
-    def is_solved(self, grid):
-        for row in range(self.game_board.get_height()):
-            for column in range(self.game_board.get_width()):
-                vehicle = grid[column][row]
-
-                if vehicle and vehicle.is_main_vehicle() and column == self.game_board.get_width() - 1:
-                    return True
-        return False

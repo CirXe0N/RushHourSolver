@@ -14,6 +14,7 @@ class BoardLoader(object):
         self.parse_to_objects(content)
 
     def read(self):
+        """Read the game board file."""
         try:
             with open(self.filename, 'r') as file:
                 return file.read().splitlines()
@@ -21,6 +22,7 @@ class BoardLoader(object):
             print('File with board data not found! Please enter correct file location.')
 
     def parse_to_objects(self, content):
+        """Parse the game board file into the corresponding models."""
         vehicles = {}
 
         for row_index, line in enumerate(content):
@@ -53,10 +55,12 @@ class BoardLoader(object):
             self.game_board.add_vehicle(vehicle, locations)
 
     def get_game_board(self):
+        """Return the loaded game board."""
         return self.game_board
 
     @staticmethod
     def validate(content):
+        """Validate the content of the game board file."""
         try:
             if len(content) == 0:
                 raise ValueError('The file is empty! Please select a file with a correct data format.')

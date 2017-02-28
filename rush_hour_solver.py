@@ -11,6 +11,8 @@ class RushHourSolver(object):
         self.run()
 
     def run(self):
+        """Run Application."""
+
         # Ask user which game board load
         board_name = self.console_view.load_board_prompt()
 

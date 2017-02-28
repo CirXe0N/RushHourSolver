@@ -11,20 +11,25 @@ class Vehicle(object):
         self.occupied_locations = []
 
     def set_start_location(self, x, y):
+        """Set start location of the object."""
         self.start_location['x'] = x
         self.start_location['y'] = y
 
     def get_start_location(self):
+        """Get start location of the object."""
         return self.start_location
 
     def set_end_location(self, x, y):
+        """Set end location of the object."""
         self.end_location['x'] = x
         self.end_location['y'] = y
 
     def get_end_location(self):
+        """Get end location of the object."""
         return self.end_location
 
     def get_occupied_locations(self):
+        """Get the locations that are being occupied by the objects."""
         occupied_locations = []
 
         if self.get_orientation() == Orientation.HORIZONTAL:
@@ -43,15 +48,19 @@ class Vehicle(object):
         return occupied_locations
 
     def set_name(self, name):
+        """Set name of the object."""
         self.name = name
 
     def get_name(self):
+        """Get name of the object."""
         return self.name
 
     def is_main_vehicle(self):
+        """Check if the object is the main vehicle (Red Car)"""
         return self.main_vehicle
 
     def get_orientation(self):
+        """Get the orientation of the object."""
         if self.start_location['x'] == self.end_location['x']:
             return Orientation.VERTICAL
 
@@ -59,6 +68,7 @@ class Vehicle(object):
             return Orientation.HORIZONTAL
 
     def move_forward(self):
+        """Move the object a space forward."""
         if self.get_orientation() == Orientation.HORIZONTAL:
             self.start_location['x'] += 1
             self.end_location['x'] += 1
@@ -68,6 +78,7 @@ class Vehicle(object):
             self.end_location['y'] += 1
 
     def move_backward(self):
+        """Move the object a space backward."""
         if self.get_orientation() == Orientation.HORIZONTAL:
             self.start_location['x'] -= 1
             self.end_location['x'] -= 1

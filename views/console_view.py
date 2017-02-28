@@ -14,7 +14,7 @@ class ConsoleView(object):
         curses.setupterm()
 
     def display_loaded_grid(self, grid, height, width):
-        # Display game board
+        """Display loaded game board and wait for user response to solve the puzzle."""
         self.display_grid(grid, height, width)
 
         # Wait for user input
@@ -24,7 +24,7 @@ class ConsoleView(object):
         self.stdscr.getch()
 
     def display_grid(self, grid, height, width):
-        # Clear screen
+        """Display the loaded game board."""
         self.stdscr.clear()
 
         # Display game board
@@ -43,6 +43,7 @@ class ConsoleView(object):
         self.stdscr.refresh()
 
     def display_statistics(self, amount_moves='--', time_delta='--'):
+        """Display the statistics of the solving process."""
         self.stdscr.addstr('\n')
         self.stdscr.addstr('\n')
         self.stdscr.addstr('The Statistics: \n', curses.A_BOLD)
@@ -52,6 +53,7 @@ class ConsoleView(object):
         self.stdscr.addstr('Time Passed: %.3f seconds\n' % time_delta)
 
     def display_solution(self, solution):
+        """Display the moves to solve the puzzle."""
         self.stdscr.addstr('\n')
         self.stdscr.addstr('\n')
 
@@ -98,6 +100,7 @@ class ConsoleView(object):
             self.stdscr.refresh()
 
     def display_exit_message(self):
+        """Display the exit message."""
         self.stdscr.addstr('\n')
         self.stdscr.addstr('\n')
         self.stdscr.addstr('Thank you for using the rush hour solver. \n')
@@ -106,10 +109,8 @@ class ConsoleView(object):
         curses.endwin()
 
     def load_board_prompt(self):
-        # Clear screen
+        """Ask the user which board to load."""
         self.stdscr.clear()
-
-        # Ask user which game board load
         self.stdscr.addstr('Which board do you want to solve? (filename without extension ".txt") \n')
         self.stdscr.addstr('Make sure the board file is in the directory "boards". \n')
         self.stdscr.addstr('\n')
