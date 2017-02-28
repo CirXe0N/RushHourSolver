@@ -11,14 +11,12 @@ class BoardSolver(object):
         self.solution = None
 
     def get_solution(self):
-        """Find the solution of the game board"""
+        """Run the breadth first search algorithm to find the solution."""
         grid = self.game_board.get_grid()
         visited = set()
         queue = [[[], grid]]
 
         while len(queue) > 0:
-            threads = []
-            moves = []
             for item in range(len(queue)):
                 moves, grid = queue.pop(0)
 
@@ -27,49 +25,24 @@ class BoardSolver(object):
                 if self.is_solved(grid):
                     return moves
 
-                threads.append(SolverThread(grid, self.game_board.get_height(), self.game_board.get_width()))
-
-            for thread in threads:
-                thread.start()
-
-            for thread in threads:
-                thread.join()
-
-            for thread in threads:
-                for new_moves, new_grid in thread.states:
+                for new_moves, new_grid in self.get_states(grid):
                     if hash(str(new_grid)) not in visited:
                         queue.append([moves + new_moves, new_grid])
                         visited.add(hash(str(new_grid)))
         return None
 
-    def is_solved(self, grid):
-        """Check if game board is solved."""
+    def get_states(self, grid):
+        """Calculate different possible states"""
+        states = []
+
         for row in range(self.game_board.get_height()):
             for column in range(self.game_board.get_width()):
                 vehicle = grid[column][row]
-
-                if vehicle and vehicle.is_main_vehicle() and column == self.game_board.get_width() - 1:
-                    return True
-        return False
-
-
-class SolverThread(threading.Thread):
-    def __init__(self, grid, width, height):
-        self.grid = grid
-        self.height = height
-        self.width = width
-        self.states = []
-        threading.Thread.__init__(self)
-
-    def run(self):
-        """Run the breadth first search algorithm to find the solution."""
-        for row in range(self.height):
-            for column in range(self.width):
-                vehicle = self.grid[column][row]
                 if vehicle:
                     for direction in Direction:
-                        if self.is_movable(vehicle, direction, self.grid):
-                            new_grid = deepcopy(self.grid)
+                        if self.is_movable(vehicle, direction, grid):
+                            new_grid = deepcopy(grid)
+
                             new_vehicle = new_grid[column][row]
 
                             if direction == Direction.BACKWARD:
@@ -81,8 +54,23 @@ class SolverThread(threading.Thread):
                             old_locations = vehicle.get_occupied_locations()
                             new_locations = new_vehicle.get_occupied_locations()
                             new_grid = self.update_vehicle(new_grid, new_vehicle, old_locations, new_locations)
-                            self.states.append([[[vehicle, direction]], new_grid])
-        return self.states
+                            states.append([[[vehicle, direction]], new_grid])
+        return states
+
+    @staticmethod
+    def update_vehicle(grid, vehicle, old_locations, new_locations):
+        """Update grid with the vehicles' new location."""
+        for location in old_locations:
+            x = location['x']
+            y = location['y']
+            grid[x][y] = 0
+
+        for location in new_locations:
+            x = location['x']
+            y = location['y']
+            grid[x][y] = vehicle
+
+        return grid
 
     def is_movable(self, vehicle, direction, grid):
         """Check if vehicle object is movable to the next empty space."""
@@ -91,7 +79,7 @@ class SolverThread(threading.Thread):
             x = location['x'] + 1
             y = location['y']
 
-            if x < self.width:
+            if x < self.game_board.get_width():
                 board_vehicle = grid[x][y]
                 if board_vehicle:
                     return False
@@ -115,7 +103,7 @@ class SolverThread(threading.Thread):
             x = location['x']
             y = location['y'] + 1
 
-            if y < self.height:
+            if y < self.game_board.get_height():
                 board_vehicle = grid[x][y]
                 if board_vehicle:
                     return False
@@ -136,17 +124,12 @@ class SolverThread(threading.Thread):
 
         return True
 
-    @staticmethod
-    def update_vehicle(grid, vehicle, old_locations, new_locations):
-        """Update grid with the vehicles' new location."""
-        for location in old_locations:
-            x = location['x']
-            y = location['y']
-            grid[x][y] = 0
+    def is_solved(self, grid):
+        """Check if game board is solved."""
+        for row in range(self.game_board.get_height()):
+            for column in range(self.game_board.get_width()):
+                vehicle = grid[column][row]
 
-        for location in new_locations:
-            x = location['x']
-            y = location['y']
-            grid[x][y] = vehicle
-
-        return grid
+                if vehicle and vehicle.is_main_vehicle() and column == self.game_board.get_width() - 1:
+                    return True
+        return False
